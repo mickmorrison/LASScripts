@@ -10,7 +10,7 @@ Happy for suggestions, improvements, corrections, and complaints !
 
 ## MakeDTM.R
 
-> [MakeDTM.R](https://github.com/mickmorrison/LASScripts/blob/main/MakeDEM.R)
+> [MakeDTM.R](https://github.com/mickmorrison/LASScripts/blob/main/MakeDTM.R)
 
 This script will create a DTM from UAV photogrammetry workflows.
 
