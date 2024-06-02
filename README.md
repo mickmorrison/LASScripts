@@ -8,9 +8,9 @@ The scripts will run in R, are mostly experimental at this stage and I will list
 
 Happy for suggestions, improvements, corrections, complaints !
 
-## MakeDEM.R
+## MakeDTM.R
 
-> [MakeDEM.R](https://github.com/mickmorrison/LASScripts/blob/main/MakeDEM.R)
+> [MakeDTM.R](https://github.com/mickmorrison/LASScripts/blob/main/MakeDEM.R)
 
 This script will create a DTM from UAV photogrammetry workflows.
 
