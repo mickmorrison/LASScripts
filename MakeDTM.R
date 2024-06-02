@@ -28,7 +28,7 @@ library(rgl)
 
 # Customise -------------------------------------------------------------------
 # Set file path and working directory. Change to suit your project.
-las_path <- "/Users/mickmorrison/Documents/Home and farm/DJI_202307091418_003_jugans/"
+las_path <- ""
 file <- "PointCloud.laz"
 
 setwd(las_path)
@@ -44,8 +44,9 @@ las_raw
 
 # Decimate function for testing the script. Comment out to run script over the whole LAS.
 # Uncomment and set to the percentage of points to retain (e.g., 0.1 for 10%)
-las <- decimate_points(las_raw, random(0.25))
-las
+
+las <- decimate_points(las_raw, random(0.5)) #uncomment to decimate for testing
+#las <- las_raw # comment out this line if you wish to run on original source file
 
 # Clean, Classify, and Normalize Points -------------------------------------------------------------------
 # Classify noise using Statistical Outlier Removal (SOR)
@@ -68,16 +69,28 @@ las <- classify_ground(las, algorithm = csf())
 # Filter LAS for ground points only, excluding noise (classification 18)
 las_filtered <- filter_poi(las, Classification == 2 & Classification != 18)
 
-# View the results
+# View the results. COmment out if not working (likely on large datasets)
 plot(las_filtered, size = "3", bkg = "black", color = "RGB", backend = "rgl")
 rglwidget()
 
 # Set the viewing position
-rgl::view3d(fov = 1, zoom = 0.6, userMatrix = rgl::rotationMatrix(pi/4, 1, 0, 0))
-rglwidget()
+#rgl::view3d(fov = 1, zoom = 0.6, userMatrix = rgl::rotationMatrix(pi/4, 1, 0, 0))
+# rglwidget()
 
 # Create and Save DTM -------------------------------------------------------------------
 # Create a Digital Terrain Model (DTM) using K nearest neighbor and inverse-distance weighting interpolation (default settings: k=10 NN, IDW power=2)
 dtm <- grid_terrain(las_filtered, res = 0.1, algorithm = knnidw(k = 10, p = 2))
 
 plot(dtm)
+
+# normalise the point cloud against the dtm
+# not strictly required by good for furher modeling of canopy or above ground objects
+
+# Normalise the point cloud against the dtm
+nlas <- normalize_height(las, knnidw(), dtm = dtm)
+nlas
+hist(filter_ground(nlas)$Z, breaks = seq(-0.6, 0.6, 0.01), main = "", xlab = "Elevation")
+
+# write outputs to file
+writeRaster(dtm, filename = "dtm.tif", format = "GTiff", overwrite = TRUE)
+
