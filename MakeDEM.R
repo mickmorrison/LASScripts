@@ -1,10 +1,13 @@
+# MakeDEM.R
+# Simple script for processing point clouds generated from UAV-derived models
+# Mick Morrison, R packages lidR, terra, sf. Full credit to package authors
+# DEPENDENCIES: Make sure your system has GDAL installed. 
+# 'terra' and 'sf' packages load best from the respective git repos, see GitHub for install information.
+# Plot functions do not always work for the LAS files; this developing package is useful: https://github.com/Jean-Romain/lidRviewer
+# Manual installation of xquartz seems to help
 
-
-
-# Make sure your system has gdal installed
-# note that 'terra' and 'sf' can be loaded with a manual command, see git pages for install information
-
-
+# Setup -------------------------------------------------------------------
+# Function to check if a package is installed, and install it if missing
 install_if_missing <- function(pkg) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
     install.packages(pkg)
@@ -15,44 +18,70 @@ install_if_missing <- function(pkg) {
 install_if_missing("sf")
 install_if_missing("terra")
 install_if_missing("lidR")
-install_if_missing("future")
-
+install_if_missing("rgl")
 
 # Load libraries
 library(sf)
 library(terra)
 library(lidR)
-library(future)
+library(rgl)
 
-# Dynamically set the number of cores (adjust if needed)
-num_cores <- 4
-options(future.globals.maxSize = 1e9) # Set max size of globals if needed
-
-# Set file path for the LAS file
+# Customise -------------------------------------------------------------------
+# Set file path and working directory. Change to suit your project.
 las_path <- "/Users/mickmorrison/Documents/Home and farm/DJI_202307091418_003_jugans/"
 file <- "PointCloud.laz"
 
-# Read LAS file
-las <- readLAS(paste0(las_path, file))
+setwd(las_path)
 
-# Optional: Check for issues in the LArandom_per_voxel()# Optional: Check for issues in the LAS file
-issues <- las_check(las)
-print(issues)
+# Read LAS -------------------------------------------------------------------
+# Read and check the LAS file
+las_raw <- readLAS(paste0(las_path, file))
+las_raw
+if (is.null(las_raw)) {
+  stop("Failed to read LAS file. Please check the file path and format.")
+}
 
-# Remove duplicate points
-nodupes <- filter_duplicates(las)
+# Check for issues in the LAS file. Uncomment on first run
+#issues <- las_check(las)
+#print(issues)
 
-# Classify ground points using the CSF algorithm with adjusted parameters
-groundpts <- classify_ground(nodupes, algorithm = csf(sloop_smooth = TRUE, class_threshold = 0.02))
+# Decimate function for testing the script. Comment out to run script over the whole LAS.
+# Uncomment and set to the percentage of points to retain (e.g., 0.1 for 10%)
+las <- decimate_points(las_raw, random(0.25))
+las
 
-# Filter LAS for ground points only
-ground_points <- filter_poi(nodupes, Classification == 2)
+# Clean, Classify, and Normalize Points -------------------------------------------------------------------
+# Classify noise using Statistical Outlier Removal (SOR)
+las <- classify_noise(las, sor(k = 10, m = 3))
+las
 
-# Create a Digital Terrain Model (DTM) using KNN interpolation
-dtm <- grid_terrain(ground_points, res = 0.1, algorithm = knnidw(k = 10, p = 2))
+# rm duplicate points rm junk
+las <- filter_duplicates(las)
+las
 
-# Plot the DTM to visualize the terrain
-plot(dtm, main = "Digital Terrain Model")
+# Open rgl device and plot denoised and deduped LAS file
+rgl::close3d()
+rgl::open3d()
+plot(las, size = "1", bkg = "black", color = "RGB", backend = "rgl")
+rglwidget()
 
-# Save the DTM as a GeoTIFF file
-writeRaster(dtm, filename = paste0(las_path, "/dtm.tiff"), format = "GTiff", overwrite = TRUE)
+# Classify ground using Cloth Simulation Function (CSF)
+las <- classify_ground(las, algorithm = csf())
+
+# Filter LAS for ground points only, excluding noise (classification 18)
+las_filtered <- filter_poi(las, Classification == 2 & Classification != 18)
+
+# View the results
+plot(las_filtered, size = "1", bkg = "black", color = "RGB", backend = "rgl")
+rgl::view3d(fov = 1, zoom = 0.6, userMatrix = rgl::rotationMatrix(pi/4, 1, 0, 0))
+rglwidget()
+
+# Set the viewing position
+rgl::view3d(fov = 1, zoom = 0.6, userMatrix = rgl::rotationMatrix(pi/4, 1, 0, 0))
+rglwidget()
+
+# Create and Save DTM -------------------------------------------------------------------
+# Create a Digital Terrain Model (DTM) using K nearest neighbor and inverse-distance weighting interpolation (default settings: k=10 NN, IDW power=2)
+dtm <- grid_terrain(las_filtered, res = 0.1, algorithm = knnidw(k = 10, p = 2))
+
+plot(dtm)
