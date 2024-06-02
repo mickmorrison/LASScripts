@@ -1,12 +1,12 @@
 # LAS Scripts
 
-This repository contains scripts for processing lidar and lidar-like files, particularly point clouds (PtC) used in the UNE Archaeology Lab at the University of New England.
+This repository contains scripts for processing point clouds (PtC) created via various approaches in the UNE Archaeology Lab at the [University of New England, Australia](https://www.une.edu.au/about-une/faculty-of-humanities-arts-social-sciences-and-education/hass/our-departments/department-of-archaeology-classics-and-history)
 
-Their purpose is to speed up the processing workflows, and to largely automate these using reproducible methods.
+The scripts aim to speed up, semi-automate and standardise a range of processing workflows, using reproducible methods.
 
-The scripts will run in R, are mostly experimental at this stage and I will list those that are functional here.
+The scripts will run in R, are definitely experimental but the most reliable listed below.
 
-Happy for suggestions, improvements, corrections, complaints !
+Happy for suggestions, improvements, corrections, and complaints !
 
 ## MakeDTM.R
 
@@ -14,8 +14,14 @@ Happy for suggestions, improvements, corrections, complaints !
 
 This script will create a DTM from UAV photogrammetry workflows.
 
-It first cleans the point
+It first cleans the point cloud, 
 
-To use this script, first create and export a PtC with Agisoft metashape, shape, outputting a las file to your intended working directory.
+There is an option to decimate the dtm, which is helpful for testing the script on a large las. 
 
-There is no need to do any processing in Agisoft other than ensuring the PtC has been correctly created.
+To use this script, first create and export a *.las from Agisoft metashape to your intended working directory.
+
+There is no need to do any processing in Agisoft, though you should optimise the dtm's resolution by processing the and generating the point cloud using 
+
+## To do
+* Canopy height function and tree analysis script -- can this be tweaked for archaeology?
+* A python script for automating the batch processing file for metashape
