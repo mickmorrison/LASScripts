@@ -1,4 +1,4 @@
-# MakeDEM.R
+# MakeDTM.R
 # Simple script for processing point clouds generated from UAV-derived models
 # Mick Morrison, R packages lidR, terra, sf. Full credit to package authors
 # DEPENDENCIES: Make sure your system has GDAL installed. 
@@ -37,9 +37,6 @@ setwd(las_path)
 # Read and check the LAS file
 las_raw <- readLAS(paste0(las_path, file))
 las_raw
-if (is.null(las_raw)) {
-  stop("Failed to read LAS file. Please check the file path and format.")
-}
 
 # Check for issues in the LAS file. Uncomment on first run
 #issues <- las_check(las)
@@ -62,7 +59,7 @@ las
 # Open rgl device and plot denoised and deduped LAS file
 rgl::close3d()
 rgl::open3d()
-plot(las, size = "1", bkg = "black", color = "RGB", backend = "rgl")
+plot(las, size = "2", bkg = "black", color = "RGB", backend = "rgl")
 rglwidget()
 
 # Classify ground using Cloth Simulation Function (CSF)
@@ -72,8 +69,7 @@ las <- classify_ground(las, algorithm = csf())
 las_filtered <- filter_poi(las, Classification == 2 & Classification != 18)
 
 # View the results
-plot(las_filtered, size = "1", bkg = "black", color = "RGB", backend = "rgl")
-rgl::view3d(fov = 1, zoom = 0.6, userMatrix = rgl::rotationMatrix(pi/4, 1, 0, 0))
+plot(las_filtered, size = "3", bkg = "black", color = "RGB", backend = "rgl")
 rglwidget()
 
 # Set the viewing position
