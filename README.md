@@ -1,6 +1,6 @@
 # LAS Scripts
 
-This repository contains scripts for processing point clouds (PtC) created via various approaches in the UNE Archaeology Lab at the [University of New England, Australia](https://www.une.edu.au/about-une/faculty-of-humanities-arts-social-sciences-and-education/hass/our-departments/department-of-archaeology-classics-and-history)
+This repository contains scripts for processing point clouds created by the [Archaeology Department at the University of New England, Australia](https://www.une.edu.au/about-une/faculty-of-humanities-arts-social-sciences-and-education/hass/our-departments/department-of-archaeology-classics-and-history)
 
 The scripts aim to speed up, semi-automate and standardise a range of processing workflows, using reproducible methods.
 
