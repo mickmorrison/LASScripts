@@ -24,6 +24,7 @@ There is no need to do any processing in Agisoft, though you should optimise the
 
 ## MakeLASCatalogue.R
 > [MakeLASCatalogue.R](https://github.com/mickmorrison/LASScripts/blob/main/MakeLASCatalogue.R)
+This script is designed to be used to prepare a large las file as a las catalogue, and to save to file for next processing steps.
 
 ## To do
 * Canopy height function and tree analysis script -- can this be tweaked for archaeology?
