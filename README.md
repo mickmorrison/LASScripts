@@ -22,6 +22,9 @@ To use this script, first create and export a *.las from Agisoft metashape to yo
 
 There is no need to do any processing in Agisoft, though you should optimise the dtm's resolution by processing the and generating the point cloud using 
 
+## MakeLASCatalogue.R
+> [MakeLASCatalogue.R](https://github.com/mickmorrison/LASScripts/blob/main/MakeLASCatalogue.R)
+
 ## To do
 * Canopy height function and tree analysis script -- can this be tweaked for archaeology?
 * A python script for automating the batch processing file for metashape
