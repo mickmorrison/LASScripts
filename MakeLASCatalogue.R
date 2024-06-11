@@ -20,8 +20,8 @@ library(lidR)
 
 # Customise -------------------------------------------------------------------
 # Set file path and working directory. Change to suit your project.
-las_path <- "path_to_las_files" # Update with your path
-file <- "PointCloud.laz"
+las_path <- "F:/Serpentine_RESTRICTED/Outputs" # Update with your path
+file <- "SERP_COMBO_VHQ.laz"
 
 setwd(las_path)
 
@@ -33,25 +33,19 @@ if (is.null(las_raw)) {
 }
 print(las_raw)
 
-# Step 1: Read the large LAS file
-large_las <- readLAS(paste0(las_path, "/", file))
-if (is.null(large_las)) {
-  stop("Error reading large LAS file")
-}
-
 # Step 2: Split the large LAS file into smaller tiles
 # Define the size of the tiles (e.g., 1000x1000 meters)
 tile_size <- 100
 
 # Create a grid for tiling
-extent_las <- st_bbox(large_las)
+extent_las <- st_bbox(las_raw)
 x_coords <- seq(extent_las["xmin"], extent_las["xmax"], by = tile_size)
 y_coords <- seq(extent_las["ymin"], extent_las["ymax"], by = tile_size)
 
 # Function to clip and save each tile
 save_tile <- function(xmin, xmax, ymin, ymax) {
   # Clip the LAS file to the tile extent
-  tile_las <- clip_rectangle(large_las, xmin, ymin, xmax, ymax)
+  tile_las <- clip_rectangle(las_raw, xmin, ymin, xmax, ymax)
   
   if (is.null(tile_las) || npoints(tile_las) == 0) {
     warning(paste("No data in tile:", xmin, xmax, ymin, ymax))
@@ -80,11 +74,23 @@ for (x in x_coords[-length(x_coords)]) {
 # Step 4: Create a LAS catalog from the smaller tiles
 # Define the directory where the tiles are saved
 tile_dest <- paste0(las_path, "/Tiles/")
+tile_dest
 tiles_directory <- tile_dest
 
-# Create a LAS catalog
-las_catalog <- readLAScatalog(tiles_directory)
+# Load necessary library for saving the catalog metadata
+install_if_missing("utils")
+library(utils)
 
-# Optional: Print the summary of the LAS catalog
-print(las_catalog)
-plot(las_catalog)
+# Step 5: Save the LAS catalog configuration
+save_catalog <- function(las_catalog, filename) {
+  # Save the LAS catalog metadata
+  metadata <- capture.output(print(las_catalog))
+  writeLines(metadata, con = filename)
+}
+
+# Save the catalog to a file
+save_catalog(las_catalog, paste0(tile_dest, "catalog_metadata.txt"))
+
+# Print confirmation
+cat("LAS catalog metadata saved to", paste0(tile_dest, "catalog_metadata.txt"), "\n")
+
