@@ -1,96 +1,52 @@
-# MakeDTM.R
-# Simple script for processing point clouds generated from UAV-derived models
-# Mick Morrison, R packages lidR, terra, sf. Full credit to package authors
-# DEPENDENCIES: Make sure your system has GDAL installed. 
-# 'terra' and 'sf' packages load best from the respective git repos, see GitHub for install information.
-# Plot functions do not always work for the LAS files; this developing package is useful: https://github.com/Jean-Romain/lidRviewer
-# Manual installation of xquartz seems to help
+# Simplified MakeDTM.R
+# Script for processing point clouds from UAV-derived models to create a DTM
+# Dependencies: Ensure GDAL is installed, and 'terra', 'sf', 'lidR' packages are installed.
 
 # Setup -------------------------------------------------------------------
-# Function to check if a package is installed, and install it if missing
+# Check and install dependencies
 install_if_missing <- function(pkg) {
   if (!requireNamespace(pkg, quietly = TRUE)) {
     install.packages(pkg)
   }
 }
 
-# Check and install dependencies
 install_if_missing("sf")
 install_if_missing("terra")
 install_if_missing("lidR")
-install_if_missing("rgl")
 
 # Load libraries
 library(sf)
 library(terra)
 library(lidR)
-library(rgl)
 
-# Customise -------------------------------------------------------------------
-# Set file path and working directory. Change to suit your project.
-las_path <- ""
-file <- "PointCloud.laz"
+# Customize -------------------------------------------------------------------
+# Set file path and working directory for las catalogue (here, 'tiles'). Adjust as needed.
+las_path <- "set path"
+tile_dest <- paste0(las_path, "/Tiles/")
+output_dest <- paste0(las_path, "processed/")
+warning_log <- paste0(las_path, "warning_log.txt")
 
 setwd(las_path)
 
-# Read LAS -------------------------------------------------------------------
-# Read and check the LAS file
-las_raw <- readLAS(paste0(las_path, file))
-las_raw
+# Load LAS Catalog -------------------------------------------------------------------
+las_catalog <- readLAScatalog(tile_dest)
 
-# Check for issues in the LAS file. Uncomment on first run
-#issues <- las_check(las)
-#print(issues)
+# Set global catalog options
+opt_chunk_buffer(las_catalog) <- 15
+opt_independent_files(las_catalog) <- TRUE
+opt_output_files(las_catalog) <- paste0(output_dest, "{XLEFT}_{YBOTTOM}_dtm")
 
-# Decimate function for testing the script. Comment out to run script over the whole LAS.
-# Uncomment and set to the percentage of points to retain (e.g., 0.1 for 10%)
+# Process and create DTM -------------------------------------------------------------------
+process_tile <- function(cluster) {
+  las <- readLAS(cluster)
+  las <- classify_noise(las, sor(k = 10, m = 3))
+  las <- filter_duplicates(las)
+  las <- classify_ground(las, algorithm = csf())
+  las_filtered <- filter_poi(las, Classification == 2)
+}
 
-las <- decimate_points(las_raw, random(0.5)) #uncomment to decimate for testing
-#las <- las_raw # comment out this line if you wish to run on original source file
+# Apply processing function
+catalog_apply(las_catalog, process_tile)
 
-# Clean, Classify, and Normalize Points -------------------------------------------------------------------
-# Classify noise using Statistical Outlier Removal (SOR)
-las <- classify_noise(las, sor(k = 10, m = 3))
-las
-
-# rm duplicate points rm junk
-las <- filter_duplicates(las)
-las
-
-# Open rgl device and plot denoised and deduped LAS file
-rgl::close3d()
-rgl::open3d()
-plot(las, size = "2", bkg = "black", color = "RGB", backend = "rgl")
-rglwidget()
-
-# Classify ground using Cloth Simulation Function (CSF)
-las <- classify_ground(las, algorithm = csf())
-
-# Filter LAS for ground points only, excluding noise (classification 18)
-las_filtered <- filter_poi(las, Classification == 2 & Classification != 18)
-
-# View the results. COmment out if not working (likely on large datasets)
-plot(las_filtered, size = "3", bkg = "black", color = "RGB", backend = "rgl")
-rglwidget()
-
-# Set the viewing position
-#rgl::view3d(fov = 1, zoom = 0.6, userMatrix = rgl::rotationMatrix(pi/4, 1, 0, 0))
-# rglwidget()
-
-# Create and Save DTM -------------------------------------------------------------------
-# Create a Digital Terrain Model (DTM) using K nearest neighbor and inverse-distance weighting interpolation (default settings: k=10 NN, IDW power=2)
-dtm <- grid_terrain(las_filtered, res = 0.1, algorithm = knnidw(k = 10, p = 2))
-
-plot(dtm)
-
-# normalise the point cloud against the dtm
-# not strictly required by good for furher modeling of canopy or above ground objects
-
-# Normalise the point cloud against the dtm
-nlas <- normalize_height(las, knnidw(), dtm = dtm)
-nlas
-hist(filter_ground(nlas)$Z, breaks = seq(-0.6, 0.6, 0.01), main = "", xlab = "Elevation")
-
-# write outputs to file
-writeRaster(dtm, filename = "dtm.tif", format = "GTiff", overwrite = TRUE)
-
+# Verify the output
+print("Processing completed.")
