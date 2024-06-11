@@ -23,7 +23,7 @@ library(future)
 
 # Customize -------------------------------------------------------------------
 # Set file paths and working directory. Adjust these paths as needed.
-las_path <- "~/Documents/Home and farm/DJI_202307091418_003_jugans/Outputs"
+las_path <- ""
 tile_dest <- paste0(las_path, "/Tiles/")
 output_dest <- paste0(las_path, "/processed/")
 warning_log <- paste0(las_path, "warning_log.txt")
