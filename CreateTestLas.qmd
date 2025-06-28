@@ -1,32 +1,44 @@
 ---
-title: "Create LAS Script: for hte production of simple LAS files for testing r code"
+title: "Create LAS Script"
 author: "Mick Morrison"
 date: "2025-06-29"
-output:
+format:                # Quarto uses `format`, not `output`
   html:
-    self-contained: TRUE
+    self-contained: true
     theme: spacelab
+server: shiny          # activates a Shiny back-end
+execute:
+  echo: true
+  message: false
+  warning: false
 editor: visual
+bibliography: references.bib
 ---
 
 ```{r setup, include=FALSE}
 # make rgl render to WebGL widgets rather than an on-screen device
+
 options(rgl.useNULL = TRUE)
-rgl::setupKnitr(autoprint = TRUE)  
+
+rgl::setupKnitr(autoprint = TRUE)
 ```
 
-## TEST-LAS Script
+# About
 
-This script creates a synthetic LiDAR dataset with an assigned Coordinate Reference System (CRS) for development and testing purposes.()
+This script creates a synthetic LAS dataset with an assigned Coordinate Reference System (CRS) for development and testing purposes. This includes what I hope is a compliant header. It draws on *R* [@base], *lidR* [@roussel2020], *sf* [@sf] and *rgl* [@rgl] and was created with help from ChatGPT o3. A simple visualisation of the generated dataset is provided.
 
-```{r warning=FALSE}
+Copy and run the script below to use. The test las can be found in this repo at \[`/synth_las.las`\].
+
+```{r, include=TRUE}
+
+#required packages
 library(lidR)
 library(sf)
 library(rgl)
 
 ## 1  generate synthetic cloud
 set.seed(1)
-n_pts <- 1000
+n_pts <- 100000 ## Set the number of points. 1000000 defaul
 df <- data.frame(
   X = runif(n_pts, 0, 100),
   Y = runif(n_pts, 0, 100),
@@ -43,9 +55,17 @@ las@header@PHB$`File Source ID` <- 1L
 las@header@PHB$`Version Major`  <- 1L
 las@header@PHB$`Version Minor`  <- 2L
 projection(las) <- 28356               # GDA94 / MGA 56
-
-## 3  save & display (widget auto-prints)
 writeLAS(las, "synth_las.las", index = TRUE)
-plot3d(las$X, las$Y, las$Z, col = las$Intensity, size = 3)
-rglwidget()
 ```
+
+## View the test LAS
+
+```{r}
+## 3  save & display (widget auto-prints)
+plot3d(las$X, las$Y, las$Z, col = las$Intensity, size = 3)
+#rglwidget()
+```
+
+## Download the test LAS
+
+[/synth_las.las](/synth_las.las)
