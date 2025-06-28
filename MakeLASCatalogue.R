@@ -41,6 +41,9 @@ tile_size <- 100
 extent_las <- st_bbox(las_raw)
 x_coords <- seq(extent_las["xmin"], extent_las["xmax"], by = tile_size)
 y_coords <- seq(extent_las["ymin"], extent_las["ymax"], by = tile_size)
+# Step 2: Split the large LAS file into smaller tiles
+# Define the size of the tiles (e.g., 1000x1000 meters)
+tile_size <- 100
 
 # Function to clip and save each tile
 save_tile <- function(xmin, xmax, ymin, ymax) {
