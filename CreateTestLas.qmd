@@ -6,7 +6,6 @@ format:                # Quarto uses `format`, not `output`
   html:
     self-contained: true
     theme: spacelab
-server: shiny          # activates a Shiny back-end
 execute:
   echo: true
   message: false
